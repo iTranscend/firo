@@ -8,6 +8,7 @@ wasmtime = { version = "29.0.0", features = ["runtime"] }
 serde_json = "1.0.136"
 serde = { version = "1.0.217", features = ["derive"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+thiserror = "2.0.11"
 
 [workspace]
 members = ["sample-contract"]

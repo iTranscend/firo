@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
+use thiserror::Error;
 use wasmtime::{Caller, Engine, Linker, Module, Store, Val};
 
 #[derive(Serialize)]
@@ -12,6 +13,51 @@ struct ContractResult {
     message: String,
 }
 
+struct GasConfig {
+    memory_page_cost: u64,
+    memory_read_cost: u64,
+    memory_write_cost: u64,
+    compute_cost: u64,
+}
+
+pub struct HostState {
+    gas_left: u64,
+    gas_limit: u64,
+    gas_config: GasConfig,
+}
+
+#[derive(Error, Debug)]
+pub enum GasError {
+    #[error("Insufficient gas: required {required}, but only {remaining} left")]
+    OutOfGas { required: u64, remaining: u64 },
+}
+
+impl HostState {
+    pub fn new(gas_limit: u64) -> Self {
+        Self {
+            gas_left: gas_limit,
+            gas_limit,
+            gas_config: GasConfig {
+                memory_page_cost: 15,
+                memory_read_cost: 2,
+                memory_write_cost: 4,
+                compute_cost: 6,
+            },
+        }
+    }
+
+    pub fn charge_gas(&mut self, amount: u64) -> Result<(), GasError> {
+        if self.gas_left < amount {
+            return Err(GasError::OutOfGas {
+                required: amount,
+                remaining: self.gas_left,
+            });
+        }
+        self.gas_left -= amount;
+        Ok(())
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<(), wasmtime::Error> {
     let engine = Engine::default();
@@ -20,17 +66,26 @@ async fn main() -> Result<(), wasmtime::Error> {
         "./target/wasm32-unknown-unknown/release/sample_contract.wasm",
     )?;
 
-    let mut linker: Linker<()> = Linker::new(&engine);
-    let mut store = Store::new(&engine, ());
+    let state = HostState::new(2_000_000);
+    let mut linker: Linker<HostState> = Linker::new(&engine);
+    let mut store = Store::new(&engine, state);
 
     linker.func_wrap(
         "host",
         "allocate",
-        |mut caller: Caller<'_, ()>, size: i32| -> i32 {
+        |mut caller: Caller<'_, HostState>, size: i32| -> i32 {
+            let pages = ((size + 0xffff) / 0x10000) as u64;
+            caller
+                .data_mut()
+                .charge_gas(pages * 10)
+                .map_err(|_| wasmtime::Trap::OutOfFuel)
+                .unwrap();
+
             let memory = caller.get_export("memory").unwrap().into_memory().unwrap();
             let ptr = memory.data_size(&caller);
             memory
                 .grow(caller, ((size + 0xffff) / 0x10000) as u64)
+                .map_err(|_| wasmtime::Trap::MemoryOutOfBounds)
                 .unwrap();
             ptr as i32
         },
