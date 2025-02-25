@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-wasmtime = { version = "29.0.0", features = ["runtime"] }
+wasmtime = { version = "30.0.2", features = ["runtime"] }
 serde_json = "1.0.136"
 serde = { version = "1.0.217", features = ["derive"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
