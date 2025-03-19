@@ -24,7 +24,7 @@ async fn main() -> Result<(), wasmtime::Error> {
 
     let mut linker: Linker<()> = Linker::new(&engine);
     let mut store = Store::new(&engine, ());
-    store.set_fuel(2_000_000)?;
+    store.set_fuel(1_000_000)?;
 
     linker.func_wrap(
         "host",
