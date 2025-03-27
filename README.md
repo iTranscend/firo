@@ -13,5 +13,5 @@ cargo build --release -p sample-contract --target wasm32-unknown-unknown
 ### Run wasm contract
 
 ```sh
-cargo run
+cargo run -- -p "./target/wasm32-unknown-unknown/release/sample_contract.wasm"
 ```

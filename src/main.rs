@@ -1,6 +1,9 @@
+use clap::Parser;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use wasmtime::{Caller, Engine, Linker, Module, Store, Val};
+
+mod cli;
 
 #[derive(Serialize)]
 struct InputData {
@@ -14,13 +17,12 @@ struct ContractResult {
 
 #[tokio::main]
 async fn main() -> Result<(), wasmtime::Error> {
+    let args = cli::Args::parse();
+
     let mut config = wasmtime::Config::new();
     config.consume_fuel(true);
     let engine = Engine::new(&config)?;
-    let module = Module::from_file(
-        &engine,
-        "./target/wasm32-unknown-unknown/release/sample_contract.wasm",
-    )?;
+    let module = Module::from_file(&engine, args.contract_path)?;
 
     let mut linker: Linker<()> = Linker::new(&engine);
     let mut store = Store::new(&engine, ());
