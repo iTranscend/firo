@@ -1,19 +1,10 @@
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize};
+
+use sdk::{ContractOutput, HandleResult};
 
 #[derive(Deserialize)]
 struct InputData {
     name: String,
-}
-
-#[derive(Serialize)]
-struct ContractResult {
-    message: String,
-}
-
-#[repr(C)]
-pub struct HandleResult {
-    ptr: u32,
-    len: u32,
 }
 
 #[no_mangle]
