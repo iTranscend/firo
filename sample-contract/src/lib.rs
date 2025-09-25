@@ -12,7 +12,7 @@ pub extern "C" fn handle(input: *const u8, input_len: u32) -> *const HandleResul
     let input_data = unsafe { std::slice::from_raw_parts(input, input_len as usize) };
     let input_json: InputData = serde_json::from_slice(input_data).unwrap();
 
-    let result = ContractResult {
+    let result = ContractOutput {
         message: format!("Hello {}", input_json.name),
     };
 
