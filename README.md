@@ -1,6 +1,6 @@
 # firo
 
-WASM Smart contract runner leveraging the [wasmtime](https://wasmtime.dev/) runtime
+Concurrent WASM smart contract runner, leveraging the [wasmtime](https://wasmtime.dev/) runtime
 
 # Usage
 
@@ -14,4 +14,10 @@ cargo build --release -p sample-contract --target wasm32-unknown-unknown
 
 ```sh
 cargo run -- -p "./target/wasm32-unknown-unknown/release/sample_contract.wasm"
+```
+
+### Run multiple wasm contracts
+
+```sh
+cargo run -- -p "sample_contract.wasm","sample_contract2.wasm"
 ```
